@@ -8,7 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- โหลด Ouroboros Hub เบื้องหลัง (ถ้าต้องการให้ Loader หลักทำงานด้วย)
+-- โหลด Ouroboros Hub เบื้องหลัง
 pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"))()
 end)
@@ -18,7 +18,7 @@ if PlayerGui:FindFirstChild("CakeHeightHub") then
     PlayerGui.CakeHeightHub:Destroy()
 end
 
--- สร้าง GUI หน้าต่างควบคุมความสูงการขุด
+-- สร้าง GUI หน้าต่างควบคุม
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CakeHeightHub"
 ScreenGui.ResetOnSpawn = false
@@ -26,8 +26,8 @@ ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 420, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 420, 0, 320) -- เพิ่มขนาด MainFrame นิดหน่อยเพื่อให้พอปุ่มใหม่
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -160)
 MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -62,16 +62,14 @@ TitleLabel.Parent = TopBar
 
 -- ตัวแปรระบบ
 local AutoDigActive = false
-local AutoCollectActive = false
+local AnchorActive = false
 local TargetHeight = 580
 local DigSpeed = 0.15
 
-local Container = Instance.new("ScrollingFrame")
+local Container = Instance.new("Frame")
 Container.Size = UDim2.new(1, -24, 1, -55)
 Container.Position = UDim2.new(0, 12, 0, 48)
 Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 0, 320)
-Container.ScrollBarThickness = 4
 Container.Parent = MainFrame
 
 local UIList = Instance.new("UIListLayout")
@@ -122,11 +120,11 @@ TextBox.FocusLost:Connect(function()
     end
 end)
 
--- 2. ปุ่มย้ายและตรึงตำแหน่งตัวละครชั่วคราว
+-- 2. ปุ่มย้ายตัวละคร
 local TpBtn = Instance.new("TextButton")
 TpBtn.Size = UDim2.new(1, 0, 0, 40)
 TpBtn.BackgroundColor3 = Color3.fromRGB(60, 110, 200)
-TpBtn.Text = "วาร์ปและตรึงตำแหน่งที่ระดับความสูง"
+TpBtn.Text = "วาร์ปไปที่ระดับความสูง"
 TpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 TpBtn.Font = Enum.Font.GothamBold
 TpBtn.TextSize = 12
@@ -143,16 +141,45 @@ TpBtn.MouseButton1Click:Connect(function()
         local pos = hrp.Position
         hrp.CFrame = CFrame.new(pos.X, TargetHeight, pos.Z)
         hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-        
-        -- ตรึงตัวละครไว้ไม่ให้ร่วง
-        hrp.Anchored = true
-        task.delay(1, function()
-            if hrp then hrp.Anchored = false end
-        end)
     end
 end)
 
--- 3. ปุ่ม Auto Dig (ใช้ช้อนขุด)
+-- 3. ปุ่มตรึงตำแหน่งลอยตัว (Anchor)
+local AnchorBtn = Instance.new("TextButton")
+AnchorBtn.Size = UDim2.new(1, 0, 0, 40)
+AnchorBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+AnchorBtn.Text = "ตรึงตำแหน่งลอยตัว: OFF"
+AnchorBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AnchorBtn.Font = Enum.Font.GothamBold
+AnchorBtn.TextSize = 12
+AnchorBtn.Parent = Container
+
+local TogAnchorCorner = Instance.new("UICorner")
+TogAnchorCorner.CornerRadius = UDim.new(0, 6)
+TogAnchorCorner.Parent = AnchorBtn
+
+AnchorBtn.MouseButton1Click:Connect(function()
+    AnchorActive = not AnchorActive
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    
+    if AnchorActive then
+        if hrp then
+            hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            hrp.Anchored = true
+        end
+        AnchorBtn.BackgroundColor3 = Color3.fromRGB(50, 170, 70)
+        AnchorBtn.Text = "ตรึงตำแหน่งลอยตัว: ON"
+    else
+        if hrp then
+            hrp.Anchored = false
+        end
+        AnchorBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+        AnchorBtn.Text = "ตรึงตำแหน่งลอยตัว: OFF"
+    end
+end)
+
+-- 4. ปุ่ม Auto Dig (ใช้ช้อนขุด)
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Size = UDim2.new(1, 0, 0, 40)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
@@ -177,31 +204,6 @@ ToggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 4. ปุ่ม Auto Collect Income
-local CollectBtn = Instance.new("TextButton")
-CollectBtn.Size = UDim2.new(1, 0, 0, 40)
-CollectBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-CollectBtn.Text = "Auto Collect Income (+41.1k): OFF"
-CollectBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CollectBtn.Font = Enum.Font.GothamBold
-CollectBtn.TextSize = 12
-CollectBtn.Parent = Container
-
-local ColCorner = Instance.new("UICorner")
-ColCorner.CornerRadius = UDim.new(0, 6)
-ColCorner.Parent = CollectBtn
-
-CollectBtn.MouseButton1Click:Connect(function()
-    AutoCollectActive = not AutoCollectActive
-    if AutoCollectActive then
-        CollectBtn.BackgroundColor3 = Color3.fromRGB(50, 170, 70)
-        CollectBtn.Text = "Auto Collect Income (+41.1k): ON"
-    else
-        CollectBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-        CollectBtn.Text = "Auto Collect Income (+41.1k): OFF"
-    end
-end)
-
 -- ปุ่ม RightShift สำหรับ ซ่อน/แสดง UI
 UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.RightShift then
@@ -209,7 +211,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
--- ลูปการขุดและเก็บเงินเบื้องหลัง
+-- ลูปการขุดเบื้องหลัง
 task.spawn(function()
     while true do
         if AutoDigActive then
@@ -232,24 +234,17 @@ task.spawn(function()
             end)
         end
         
-        if AutoCollectActive then
+        -- ตรวจสอบและตรึงตำแหน่งตัวละครอย่างต่อเนื่องหากเปิดใช้งาน
+        if AnchorActive then
             pcall(function()
-                for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
-                    if obj:IsA("RemoteEvent") then
-                        local name = obj.Name:lower()
-                        if name:find("collect") or name:find("claim") or name:find("income") or name:find("cash") or name:find("money") then
-                            obj:FireServer()
-                        end
-                    elseif obj:IsA("RemoteFunction") then
-                        local name = obj.Name:lower()
-                        if name:find("collect") or name:find("claim") or name:find("income") or name:find("cash") or name:find("money") then
-                            obj:InvokeServer()
-                        end
-                    end
+                local char = LocalPlayer.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if hrp and not hrp.Anchored then
+                    hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    hrp.Anchored = true
                 end
             end)
         end
-        
         task.wait(DigSpeed)
     end
 end)
