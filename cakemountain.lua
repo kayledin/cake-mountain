@@ -21,8 +21,8 @@ ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 400, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 400, 0, 360)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -180)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -49,7 +49,7 @@ TitleLabel.Size = UDim2.new(1, -20, 1, 0)
 TitleLabel.Position = UDim2.new(0, 12, 0, 0)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "CAKE MOUNTAIN - AUTO DIG & HEIGHT"
+TitleLabel.Text = "CAKE MOUNTAIN - FARMING HUB"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 13
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -57,13 +57,16 @@ TitleLabel.Parent = TopBar
 
 -- ตัวแปรระบบ
 local AutoDigActive = false
-local TargetHeight = 100
-local DigSpeed = 0.2
+local AutoCollectActive = false
+local TargetHeight = 580
+local DigSpeed = 0.15
 
-local Container = Instance.new("Frame")
+local Container = Instance.new("ScrollingFrame")
 Container.Size = UDim2.new(1, -24, 1, -55)
 Container.Position = UDim2.new(0, 12, 0, 48)
 Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 0, 320)
+Container.ScrollBarThickness = 4
 Container.Parent = MainFrame
 
 local UIList = Instance.new("UIListLayout")
@@ -77,10 +80,6 @@ InputFrame.Size = UDim2.new(1, 0, 0, 42)
 InputFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 InputFrame.BorderSizePixel = 0
 InputFrame.Parent = Container
-
-local InputCorner = Instance.new("UICorner")
-InputCorner.CornerRadius = UDim.new(0, 6)
-InputCorner.Parent = InputFrame
 
 local InputLabel = Instance.new("TextLabel")
 InputLabel.Size = UDim2.new(0, 180, 1, 0)
@@ -97,7 +96,7 @@ local TextBox = Instance.new("TextBox")
 TextBox.Size = UDim2.new(0, 100, 0, 28)
 TextBox.Position = UDim2.new(1, -110, 0.5, -14)
 TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
-TextBox.Text = "100"
+TextBox.Text = "580"
 TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextBox.Font = Enum.Font.GothamBold
 TextBox.TextSize = 12
@@ -136,11 +135,11 @@ TpBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 3. ปุ่ม Toggle Auto Dig
+-- 3. ปุ่ม Toggle Auto Dig (กระตุ้น Tool ช้อนที่ถืออยู่)
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Size = UDim2.new(1, 0, 0, 40)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-ToggleBtn.Text = "Auto Dig: OFF"
+ToggleBtn.Text = "Auto Dig (ใช้ช้อนขุดอัตโนมัติ): OFF"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.Font = Enum.Font.GothamBold
 ToggleBtn.TextSize = 12
@@ -154,10 +153,35 @@ ToggleBtn.MouseButton1Click:Connect(function()
     AutoDigActive = not AutoDigActive
     if AutoDigActive then
         ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 170, 70)
-        ToggleBtn.Text = "Auto Dig: ON"
+        ToggleBtn.Text = "Auto Dig (ใช้ช้อนขุดอัตโนมัติ): ON"
     else
         ToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-        ToggleBtn.Text = "Auto Dig: OFF"
+        ToggleBtn.Text = "Auto Dig (ใช้ช้อนขุดอัตโนมัติ): OFF"
+    end
+end)
+
+-- 4. ปุ่ม Toggle Auto Collect Money (+41.1k)
+local CollectBtn = Instance.new("TextButton")
+CollectBtn.Size = UDim2.new(1, 0, 0, 40)
+CollectBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+CollectBtn.Text = "Auto Collect Income (+41.1k): OFF"
+CollectBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CollectBtn.Font = Enum.Font.GothamBold
+CollectBtn.TextSize = 12
+CollectBtn.Parent = Container
+
+local ColCorner = Instance.new("UICorner")
+ColCorner.CornerRadius = UDim.new(0, 6)
+ColCorner.Parent = CollectBtn
+
+CollectBtn.MouseButton1Click:Connect(function()
+    AutoCollectActive = not AutoCollectActive
+    if AutoCollectActive then
+        CollectBtn.BackgroundColor3 = Color3.fromRGB(50, 170, 70)
+        CollectBtn.Text = "Auto Collect Income (+41.1k): ON"
+    else
+        CollectBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+        CollectBtn.Text = "Auto Collect Income (+41.1k): OFF"
     end
 end)
 
@@ -173,17 +197,45 @@ task.spawn(function()
     while true do
         if AutoDigActive then
             pcall(function()
-                -- ค้นหาการเรียกใช้งาน Event ของตัวเกม
+                local char = LocalPlayer.Character
+                if char then
+                    -- สั่งใช้งาน Tool (ช้อน) ที่ตัวละครถืออยู่โดยตรง
+                    local tool = char:FindFirstChildOfClass("Tool")
+                    if tool then
+                        tool:Activate()
+                    end
+                end
+                -- สั่งเรียก Remote ที่เกี่ยวกับการขุดร่วมด้วย
                 for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
                     if obj:IsA("RemoteEvent") then
                         local name = obj.Name:lower()
-                        if name:find("dig") or name:find("click") or name:find("mine") or name:find("hit") then
+                        if name:find("dig") or name:find("mine") or name:find("hit") or name:find("cake") then
                             obj:FireServer()
                         end
                     end
                 end
             end)
         end
+        
+        if AutoCollectActive then
+            pcall(function()
+                -- สั่งดึงรายได้/เงินสะสม
+                for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+                    if obj:IsA("RemoteEvent") then
+                        local name = obj.Name:lower()
+                        if name:find("collect") or name:find("claim") or name:find("income") or name:find("cash") or name:find("money") then
+                            obj:FireServer()
+                        end
+                    elseif obj:IsA("RemoteFunction") then
+                        local name = obj.Name:lower()
+                        if name:find("collect") or name:find("claim") or name:find("income") or name:find("cash") or name:find("money") then
+                            obj:InvokeServer()
+                        end
+                    end
+                end
+            end)
+        end
+        
         task.wait(DigSpeed)
     end
 end)
