@@ -113,11 +113,11 @@ TextBox.FocusLost:Connect(function()
     end
 end)
 
--- 2. ปุ่ม Teleport ไประดับความสูง
+-- 2. ปุ่ม Teleport ไประดับความสูงพร้อมตรึงตำแหน่งไม่ให้ร่วง
 local TpBtn = Instance.new("TextButton")
 TpBtn.Size = UDim2.new(1, 0, 0, 40)
 TpBtn.BackgroundColor3 = Color3.fromRGB(60, 110, 200)
-TpBtn.Text = "ย้ายตัวละครไปชั้นความสูงที่ระบุ"
+TpBtn.Text = "ย้ายและตรึงตัวละครที่ชั้นความสูง"
 TpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 TpBtn.Font = Enum.Font.GothamBold
 TpBtn.TextSize = 12
@@ -130,12 +130,20 @@ TpCorner.Parent = TpBtn
 TpBtn.MouseButton1Click:Connect(function()
     local char = LocalPlayer.Character
     if char and char:FindFirstChild("HumanoidRootPart") then
-        local pos = char.HumanoidRootPart.Position
-        char.HumanoidRootPart.CFrame = CFrame.new(pos.X, TargetHeight, pos.Z)
+        local hrp = char.HumanoidRootPart
+        local pos = hrp.Position
+        hrp.CFrame = CFrame.new(pos.X, TargetHeight, pos.Z)
+        hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        
+        -- ตรึงตัวละครชั่วคราวเพื่อให้ยืนขุดกลางอากาศได้
+        hrp.Anchored = true
+        task.delay(1, function()
+            if hrp then hrp.Anchored = false end
+        end)
     end
 end)
 
--- 3. ปุ่ม Toggle Auto Dig (กระตุ้น Tool ช้อนที่ถืออยู่)
+-- 3. ปุ่ม Toggle Auto Dig (ใช้ช้อนขุด)
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Size = UDim2.new(1, 0, 0, 40)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
@@ -160,7 +168,7 @@ ToggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 4. ปุ่ม Toggle Auto Collect Money (+41.1k)
+-- 4. ปุ่ม Toggle Auto Collect Income
 local CollectBtn = Instance.new("TextButton")
 CollectBtn.Size = UDim2.new(1, 0, 0, 40)
 CollectBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
@@ -199,13 +207,11 @@ task.spawn(function()
             pcall(function()
                 local char = LocalPlayer.Character
                 if char then
-                    -- สั่งใช้งาน Tool (ช้อน) ที่ตัวละครถืออยู่โดยตรง
                     local tool = char:FindFirstChildOfClass("Tool")
                     if tool then
                         tool:Activate()
                     end
                 end
-                -- สั่งเรียก Remote ที่เกี่ยวกับการขุดร่วมด้วย
                 for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
                     if obj:IsA("RemoteEvent") then
                         local name = obj.Name:lower()
@@ -219,7 +225,6 @@ task.spawn(function()
         
         if AutoCollectActive then
             pcall(function()
-                -- สั่งดึงรายได้/เงินสะสม
                 for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
                     if obj:IsA("RemoteEvent") then
                         local name = obj.Name:lower()
